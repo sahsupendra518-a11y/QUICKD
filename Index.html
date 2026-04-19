@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fiesta Marketplace - Admin & Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 p-5">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">AI Fiesta Multi-Vendor System</h1>
+
+        <div class="flex justify-center gap-4 mb-10">
+            <button onclick="showSection('vendor-reg')" class="bg-orange-500 text-white px-6 py-2 rounded">Vendor Register</button>
+            <button onclick="showSection('admin-panel')" class="bg-blue-700 text-white px-6 py-2 rounded">Admin Dashboard</button>
+        </div>
+
+        <div id="vendor-reg" class="section bg-white p-6 rounded shadow-md">
+            <h2 class="text-xl font-bold mb-4">Vendor Registration</h2>
+            <div class="space-y-4">
+                <input type="text" id="v-name" placeholder="Full Name" class="w-full border p-2 rounded">
+                <input type="text" id="v-shop" placeholder="Shop Name" class="w-full border p-2 rounded">
+                <label class="block text-sm font-medium">Upload Citizen ID Image:</label>
+                <input type="file" id="v-id-card" class="w-full border p-2 rounded">
+                <button onclick="registerVendor()" class="w-full bg-green-600 text-white py-2 rounded">Submit for Approval</button>
+            </div>
+        </div>
+
+        <div id="admin-panel" class="section hidden bg-white p-6 rounded shadow-md">
+            <h2 class="text-xl font-bold mb-4 text-red-600">Admin Control (Owner)</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-2 border">Vendor</th>
+                            <th class="p-2 border">Shop</th>
+                            <th class="p-2 border">ID Image</th>
+                            <th class="p-2 border">Status</th>
+                            <th class="p-2 border">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vendor-list">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="vendor-post" class="section hidden bg-white p-6 rounded shadow-md mt-6 border-t-4 border-green-500">
+            <h2 class="text-xl font-bold mb-4 text-green-600">Vendor Dashboard (Approved)</h2>
+            <div class="bg-yellow-100 p-3 mb-4 rounded text-sm text-yellow-800" id="loc-status">Tracking location...</div>
+            <input type="text" placeholder="Product Name" class="w-full border p-2 mb-4 rounded">
+            <button class="bg-green-500 text-white px-4 py-2 rounded">Post Product</button>
+        </div>
+    </div>
+
+    <script>
+        // Fake Database (Aap isse Firebase se connect karenge baad mein)
+        let vendors = [];
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // Register Logic
+        function registerVendor() {
+            const name = document.getElementById('v-name').value;
+            const shop = document.getElementById('v-shop').value;
+            
+            if(!name || !shop) return alert("Details bhariye!");
+
+            const newVendor = {
+                id: Date.now(),
+                name: name,
+                shop: shop,
+                status: 'Pending',
+                idImg: 'https://via.placeholder.com/150' // Dummy image URL
+            };
+
+            vendors.push(newVendor);
+            renderAdminTable();
+            alert("Application submitted to Admin!");
+            showSection('admin-panel');
+        }
+
+        // Admin Approval Logic
+        function approveVendor(id) {
+            vendors = vendors.map(v => v.id === id ? {...v, status: 'Approved'} : v);
+            renderAdminTable();
+            alert("Vendor Approved!");
+            showSection('vendor-post'); // Demo ke liye approved view dikhana
+            startTracking();
+        }
+
+        function renderAdminTable() {
+            const list = document.getElementById('vendor-list');
+            list.innerHTML = vendors.map(v => `
+                <tr>
+                    <td class="p-2 border">${v.name}</td>
+                    <td class="p-2 border">${v.shop}</td>
+                    <td class="p-2 border text-blue-500 underline"><a href="#">View ID</a></td>
+                    <td class="p-2 border ${v.status === 'Approved' ? 'text-green-600' : 'text-red-600'}">${v.status}</td>
+                    <td class="p-2 border">
+                        ${v.status === 'Pending' ? `<button onclick="approveVendor(${v.id})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Approve</button>` : '✅'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Location Tracking Logic
+        function startTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition((pos) => {
+                    document.getElementById('loc-status').innerText = `Live Location: Lat ${pos.coords.latitude.toFixed(4)}, Lng ${pos.coords.longitude.toFixed(4)}`;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
